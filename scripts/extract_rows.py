@@ -116,27 +116,47 @@ def main():
     slots = [key_background(strip.crop((i * slot_w, 0, (i + 1) * slot_w, H)))
              for i in range(args.n_frames)]
 
-    # feet registration: shift each slot so its bottom region aligns with
-    # slot 0's — the pet may drift slightly between drawn slots, and feet
-    # must not move frame to frame
-    ref = slots[0].getchannel("A")
-    rb = ref.getbbox()
-    band = (max(0, rb[0]-12), max(0, rb[3]-46), min(slot_w, rb[2]+12), rb[3])
-    ref_band = ref.crop(band).tobytes()
+    # registration: the pet drifts AND leans progressively across drawn
+    # slots (translation alone leaves 15px+ of smear). Align each slot to
+    # slot 0 with a rotation+translation search on half-res silhouettes,
+    # pivoting rotation at the silhouette's foot center. Report the
+    # residual per frame so the caller can drop frames that never align.
+    def half_alpha(img):
+        return img.getchannel("A").resize(
+            (img.size[0] // 2, img.size[1] // 2), Image.BILINEAR)
+
+    ref = half_alpha(slots[0])
+    ref_bytes = ref.tobytes()
+    RW, RH = ref.size
+    rb = slots[0].getchannel("A").getbbox()
+    pivot = ((rb[0] + rb[2]) / 2, rb[3])  # foot center, full-res coords
+    residuals = [0.0]
     for i in range(1, args.n_frames):
-        a = slots[i].getchannel("A")
-        best = (None, 0, 0)
-        for dy in range(-8, 9):
-            for dx in range(-10, 11):
-                cand = a.crop((band[0]+dx, band[1]+dy, band[2]+dx, band[3]+dy)).tobytes()
-                sad = sum(abs(p-q) for p, q in zip(ref_band, cand))
-                if best[0] is None or sad < best[0]:
-                    best = (sad, dx, dy)
-        _, dx, dy = best
+        base = slots[i]
+        def sad_at(rot, dx, dy, _cache={}):
+            if rot not in _cache:
+                img = base.rotate(rot, resample=Image.BICUBIC,
+                                  center=pivot) if rot else base
+                _cache[rot] = half_alpha(img)
+            cand = _cache[rot].crop((dx, dy, dx + RW, dy + RH)).tobytes()
+            return sum(abs(p - q) for p, q in zip(ref_bytes, cand))
+        space = [(sad_at(r, dx, dy), r, dx, dy)
+                 for r in (-4, -2, 0, 2, 4)
+                 for dx in range(-16, 17, 4) for dy in range(-6, 7, 3)]
+        _, r0, x0, y0 = min(space)
+        space = [(sad_at(r, dx, dy), r, dx, dy)
+                 for r in (r0 - 1, r0 - 0.5, r0, r0 + 0.5, r0 + 1)
+                 for dx in range(x0 - 3, x0 + 4) for dy in range(y0 - 2, y0 + 3)]
+        sad, r, dx, dy = min(space)
+        residuals.append(sad / (RW * RH))
+        img = base.rotate(r, resample=Image.BICUBIC, center=pivot) if r else base
         if dx or dy:
-            shifted = Image.new("RGBA", slots[i].size, (0, 0, 0, 0))
-            shifted.paste(slots[i], (-dx, -dy), slots[i])
-            slots[i] = shifted
+            shifted = Image.new("RGBA", img.size, (0, 0, 0, 0))
+            shifted.paste(img, (-dx * 2, -dy * 2), img)
+            img = shifted
+        slots[i] = img
+    print("alignment residual per frame:",
+          [round(x, 1) for x in residuals])
 
     boxes = [s.getchannel("A").getbbox() for s in slots]
     union = (min(b[0] for b in boxes), min(b[1] for b in boxes),
