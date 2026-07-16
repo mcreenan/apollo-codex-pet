@@ -1,7 +1,7 @@
 {
   "_comment": "Procedural rig per played state (scripts/rig.py): every frame derives from the row's master cell via small deterministic deformations \u2014 sway/breath amplitudes in px, layer rotations in degrees about a pivot, freq = cycles per 4s loop (integer for a seamless wrap). Geometry (ellipses/pivots) is measured on this style's master cells in raw sheet coords.",
   "idle": {
-    "frames": "runs/clay-video/cells/idle"
+    "frames": "runs/clay-video/cells/idle-sleep"
   },
   "wait": {
     "frames": "runs/clay-video/cells/waiting"
