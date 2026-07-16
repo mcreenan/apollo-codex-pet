@@ -5,14 +5,19 @@ company while I'm at the office, so here he is as an animated coding-agent
 pet, in six art styles, for two hosts: the Codex CLI and
 [Orca](https://onorca.dev).
 
-Everything was generated from three photos via the
+The base art was generated from three photos via the
 [openai/skills `hatch-pet` skill](https://github.com/openai/skills) and
-`$imagegen`, then post-processed with the scripts in `scripts/`.
+`$imagegen`. The animations are cut from short Veo clips generated in
+[Google Flow](https://labs.google/flow) from that art, then keyed,
+loop-matched, and assembled by the scripts in `scripts/` — see
+`prompts/full-prompts/video-pipeline.md` for the full recipe.
 
 ## Styles
 
-Idle animation for each style (GIF previews in `docs/gifs/`, built from the
-idle row of the native spritesheets):
+Idle animation for each style (GIF previews in `docs/gifs/`). Clay,
+flat-vector, and painterly show their video-pipeline loops — clay idles
+asleep. Pixel, plush, and sticker still show the previous drawn-pose
+animation until their video passes land:
 
 | `pixel` | `plush` | `sticker` |
 |:---:|:---:|:---:|
@@ -28,10 +33,11 @@ idle row of the native spritesheets):
 |---|---|
 | `photos/` | The three source photos of Apollo used for identity grounding |
 | `refs/` | Same photos converted/resized to ≤1536px PNG for `$imagegen` |
-| `variants/` | User-approved base look per style (full body on chroma green) |
+| `variants/` | User-approved base look per style (full body on chroma green) + the 16:9 Flow start-frame refs derived from them |
+| `runs/<style>-video/` | The Flow/Veo source clips per state and the 48-frame cell loops cut from them |
 | `dist/codex-pets/` | Native Codex CLI pets: `pet.json` + 8×9 spritesheet |
 | `dist/codex-pet-bundles/` | Orca-importable `.codex-pet` bundles, generated from `dist/codex-pets/` |
-| `prompts/` | The codex exec prompts that drove generation (reproducibility) |
+| `prompts/` | Generation prompts: per-style Flow video prompts, the pipeline recipe, and the original base-art runs (reproducibility) |
 | `docs/gifs/` | Idle-animation GIF previews per style (used in this README) |
 | `scripts/` | Post-processing generators (see below) |
 
@@ -105,8 +111,10 @@ drop the MP4s at `runs/<style>-video/<state>.mp4`, cut with
 ## Regenerating a style from scratch
 
 1. Generate/approve a base look with `prompts/variant-prompt.md`.
-2. Fill `prompts/full-run-template.md` (or use a ready file in
-   `prompts/full-prompts/`) and run it headless:
+2. Build the native pet (the 8×9 drawn-pose spritesheet) with the style's
+   original full-run prompt in `prompts/full-prompts/<style>.md`:
    `codex exec --skip-git-repo-check -s workspace-write - < prompt.md`.
-3. The codex sandbox can't write `~/.codex/pets` — copy the staged package in
-   manually, then run the Orca script above.
+   The codex sandbox can't write `~/.codex/pets` — copy the staged package
+   in manually.
+3. Animate it with the video pipeline above (refs via `scripts/video_ref.py`,
+   prompts via a new `prompts/full-prompts/<style>-video-states.md`).
