@@ -11,7 +11,16 @@ Everything was generated from three photos via the
 
 ## Styles
 
-`pixel` · `plush` · `sticker` · `flat-vector` · `clay` · `painterly`
+Idle animation for each style (GIF previews in `docs/gifs/`, built from the
+idle row of the native spritesheets):
+
+| `pixel` | `plush` | `sticker` |
+|:---:|:---:|:---:|
+| ![pixel](docs/gifs/pixel-idle.gif) | ![plush](docs/gifs/plush-idle.gif) | ![sticker](docs/gifs/sticker-idle.gif) |
+
+| `flat-vector` | `clay` | `painterly` |
+|:---:|:---:|:---:|
+| ![flat-vector](docs/gifs/flat-vector-idle.gif) | ![clay](docs/gifs/clay-idle.gif) | ![painterly](docs/gifs/painterly-idle.gif) |
 
 ## Layout
 
@@ -23,6 +32,7 @@ Everything was generated from three photos via the
 | `dist/codex-pets/` | Native Codex CLI pets: `pet.json` + 8×9 spritesheet |
 | `dist/codex-pet-bundles/` | Orca-importable `.codex-pet` bundles, generated from `dist/codex-pets/` |
 | `prompts/` | The codex exec prompts that drove generation (reproducibility) |
+| `docs/gifs/` | Idle-animation GIF previews per style (used in this README) |
 | `scripts/` | Post-processing generators (see below) |
 
 ## Installing

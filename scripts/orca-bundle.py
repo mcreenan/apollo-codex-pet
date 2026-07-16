@@ -44,19 +44,21 @@ def load_cells(sheet_path):
 def place(cell, dx=0.0, dy=0.0, rot=0.0, sx=1.0, sy=1.0):
     """Transform a full source cell, feet planted on a common baseline.
 
-    Anchors the content alpha-bbox (not the cell edge, whose padding varies
-    per pose): bbox bottom on BASELINE_Y, bbox center-x on the cell midline.
-    Rotation pivots about that foot anchor so sway/wag never lifts the feet.
+    Vertically the content alpha-bbox bottom lands on BASELINE_Y (cell-edge
+    padding varies per pose, so pasting by cell would float). Horizontally
+    poses stay as drawn — bbox re-centering would shift the whole body
+    whenever a lifted paw or tail moves the bbox. Rotation pivots about the
+    bottom-center foot anchor so sway/wag never lifts the feet.
     """
     w = max(1, round(CELL_W * sx * BAKED_SCALE))
     h = max(1, round(CELL_H * sy * BAKED_SCALE))
     img = cell.resize((w, h), Image.LANCZOS)
     # bbox from alpha only: sources keep RGB junk under transparent pixels
-    left, top, right, bottom = img.getchannel("A").getbbox() or (0, 0, w, h)
+    bottom = (img.getchannel("A").getbbox() or (0, 0, w, h))[3]
     anchor_x = CELL_W / 2 + dx
     anchor_y = BASELINE_Y + dy
     frame = Image.new("RGBA", (CELL_W, CELL_H), (0, 0, 0, 0))
-    frame.paste(img, (round(anchor_x - (left + right) / 2),
+    frame.paste(img, (round((CELL_W - w) / 2 + dx),
                       round(anchor_y - bottom)), img)
     if rot:
         frame = frame.rotate(rot, resample=Image.BICUBIC,
@@ -71,8 +73,13 @@ def pose_track(n_poses, hold=4, cycles=2):
 
 def build_calm_row(cell, row, n_frames=48):
     """Choreographed loop for one played state. All sine terms complete
-    integer cycles over n_frames so frame N-1 flows back into frame 0."""
-    track = pose_track(SRC_POSES[row])
+    integer cycles over n_frames so frame N-1 flows back into frame 0.
+
+    Rotations pivot about the feet, which doubles how far the head travels
+    vs a center pivot — amplitudes stay small so sway reads as breathing,
+    not a metronome. Calm states hold poses 8 frames to cut pose-snap rate."""
+    hold, cycles = (8, 1) if row in ("idle", "wait") else (4, 2)
+    track = pose_track(SRC_POSES[row], hold=hold, cycles=cycles)
     frames = []
     for i in range(n_frames):
         t = i / n_frames
@@ -81,15 +88,15 @@ def build_calm_row(cell, row, n_frames=48):
         if row == "idle":
             sy = 1.0 - 0.020 * (0.5 - 0.5 * math.cos(8 * math.pi * t))  # 4 breaths
             sx = 2.0 - sy  # conserve volume
-            rot = 1.5 * math.sin(4 * math.pi * t)                        # slow sway
+            rot = 0.8 * math.sin(4 * math.pi * t)                        # slow sway
         elif row == "work":
             dy = -4.0 * abs(math.sin(8 * math.pi * t))                   # busy trot bob
             dx = 2.5 * math.sin(4 * math.pi * t)
         elif row == "wait":
-            rot = 3.0 * math.sin(4 * math.pi * t)                        # expectant tilt
+            rot = 1.2 * math.sin(4 * math.pi * t)                        # expectant tilt
             sy = 1.0 - 0.015 * (0.5 - 0.5 * math.cos(8 * math.pi * t))
         elif row == "review":
-            rot = 5.0 * math.sin(8 * math.pi * t)                        # happy wag
+            rot = 2.5 * math.sin(8 * math.pi * t)                        # happy wag
             for start in (8, 32):                                        # two mini-hops
                 if start <= i < start + 6:
                     ht = (i - start) / 5
