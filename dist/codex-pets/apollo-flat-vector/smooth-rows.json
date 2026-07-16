@@ -1,34 +1,15 @@
 {
   "_comment": "Rows regenerated as continuous loops (runs/flat-vector-smooth via scripts/extract_rows.py); only affine-aligned keyframe subsets kept. cycle lists distinct keyframe cells in loop order; orca-bundle.py expands each cycle to 48 frames with optical-flow interpolation. Cycle length must divide 48.",
   "wait": {
-    "cycle": [
-      0,
-      1,
-      2,
-      3,
-      2,
-      1
-    ]
+    "frames": "runs/flat-vector-video/cells/waiting"
   },
   "work": {
-    "cycle": [
-      0,
-      1,
-      2,
-      1
-    ]
+    "frames": "runs/flat-vector-video/cells/running"
   },
   "idle": {
-    "cycle": [
-      0,
-      1,
-      2,
-      3,
-      4,
-      3,
-      2,
-      1
-    ],
-    "transition": 2
+    "frames": "runs/flat-vector-video/cells/idle"
+  },
+  "review": {
+    "frames": "runs/flat-vector-video/cells/review"
   }
 }
