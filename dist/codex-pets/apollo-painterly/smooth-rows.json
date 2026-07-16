@@ -1,41 +1,15 @@
 {
   "_comment": "Rows regenerated as continuous loops (runs/painterly-smooth via scripts/extract_rows.py); only affine-aligned keyframe subsets kept. cycle lists distinct keyframe cells in loop order; orca-bundle.py expands each cycle to 48 frames with optical-flow interpolation. Cycle length must divide 48.",
   "idle": {
-    "cycle": [
-      0,
-      1,
-      2,
-      3,
-      2,
-      1
-    ]
+    "frames": "runs/painterly-video/cells/idle"
   },
   "wait": {
-    "cycle": [
-      0,
-      1,
-      2,
-      3,
-      2,
-      1
-    ]
+    "frames": "runs/painterly-video/cells/waiting"
   },
   "work": {
-    "cycle": [
-      0,
-      1,
-      2,
-      3,
-      2,
-      1
-    ]
+    "frames": "runs/painterly-video/cells/running"
   },
   "review": {
-    "cycle": [
-      0,
-      1,
-      2,
-      1
-    ]
+    "frames": "runs/painterly-video/cells/review"
   }
 }
