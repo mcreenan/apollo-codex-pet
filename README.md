@@ -50,18 +50,18 @@ cp -R dist/codex-pets/apollo-plush ~/.codex/pets/
 Orca plays spritesheet pets with one flat fps, uniform `steps()` timing, and
 only five of the nine animation rows: `idle`, `running` (working), `waiting`,
 `review`, and `jumping` (a frozen frame while dragging). The bundles target
-that reality: 48 columns @ 12fps, where each played state is a 4-second
-choreographed loop — the designed pose cycle held 4 frames per pose, with
-eased transforms (breathing squash, sway, trot bob, wag rotation, mini-hops)
-gliding on every frame, and every frame anchored by its content bounding box
-to a common foot baseline so the pet stays planted. All frames are
-synthesized from the 57 real poses — no regeneration. Built by
+that reality: 48 columns @ 12fps, where each played state is a 4-second loop
+of 48 real frames cut from a short Veo video (generated in Google Flow from
+the style's `variants/` art on chroma green — see
+`prompts/full-prompts/video-pipeline.md`), keyed, loop-matched, and anchored
+to a common foot baseline so the pet stays planted. Rows Orca never plays
+are carried over from the native pet's drawn poses. Built by
 `scripts/orca-bundle.py`.
 
 The two `dist/` dirs are one artifact per host, not duplicates: the native
-Codex CLI pets in `dist/codex-pets/` are also the only final-form home of
-the 57 raw poses, making them the source the bundle script reads. Bundles
-are regenerable from them in seconds; the reverse is not true, so
+Codex CLI pets in `dist/codex-pets/` are the source the bundle script reads
+(each played row also carries 6 samples of its video loop for the CLI pet).
+Bundles are regenerable from them in seconds; the reverse is not true, so
 `dist/codex-pets/` is the dir to protect.
 
 Orca manifest limits (from its import validator): ≤512 frames per animation
@@ -72,13 +72,35 @@ dimensions at 16383px → 85 columns max at 192px cells.
 ## Scripts
 
 ```bash
-# build a 48-column choreographed Orca bundle from a native codex pet
-python scripts/orca-bundle.py dist/codex-pets/apollo-plush out/Apollo-plush.codex-pet
+# 16:9 green-screen start frame for Flow from a style's variant art
+python scripts/video_ref.py variants/apollo-clay.png variants/apollo-clay-video-ref-16x9.png
+
+# cut a downloaded Flow/Veo clip into a 48-frame loop of placed cells
+python scripts/video_rows.py runs/clay-video/idle.mp4 runs/clay-video/cells/idle \
+  --gif qa/clay-video-idle.gif
+
+# author every cut state into the pet, render previews, rebuild the bundle
+python scripts/author_video_rows.py clay
+
+# preview exactly what Orca will play, without building anything
+python scripts/orca-bundle.py --preview dist/codex-pets/apollo-clay qa/preview
+
+# build a 48-column Orca bundle from a native codex pet
+python scripts/orca-bundle.py dist/codex-pets/apollo-clay out/Apollo-clay.codex-pet
 ```
 
 Saves WebP with `lossless=True, exact=True` — without `exact`, libwebp
 rewrites RGB under fully-transparent pixels and the hatch-pet validator
 rejects the sheet.
+
+## Animating a style (the video pipeline)
+
+Follow `prompts/full-prompts/video-pipeline.md`: generate one 8-second clip
+per state in Google Flow (start frame = the style's
+`variants/apollo-<style>-video-ref-16x9.png`, End frame = same image except
+for running; prompts in `prompts/full-prompts/<style>-video-states.md`),
+drop the MP4s at `runs/<style>-video/<state>.mp4`, cut with
+`scripts/video_rows.py`, then `scripts/author_video_rows.py <style>`.
 
 ## Regenerating a style from scratch
 

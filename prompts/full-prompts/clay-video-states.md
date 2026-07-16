@@ -1,69 +1,25 @@
-# Clay — Flow/Veo prompts for all four Orca states
+# Apollo clay — Flow/Veo prompts for all four Orca states
 
-Same recipe for every state: Flow "Frames" mode, Start frame =
-`variants/apollo-clay-video-ref-16x9.png` (must match the session's 16:9
-aspect), 8s, no End frame. Download Original, drop at
-`runs/clay-video/<state>.mp4`, then:
-
-```
-python scripts/video_rows.py runs/clay-video/<state>.mp4 \
-  runs/clay-video/cells/<state> --gif qa/clay-video-<state>.gif
-```
-
-Shared boilerplate (identical in each prompt): the first two and last two
-sentences pin identity, camera, and background.
+Recipe (see prompts/full-prompts/video-pipeline.md for the full run):
+- Flow "Frames" mode, 16:9 session, 8s, Veo/Omni Flash tier is fine
+- Start frame: `variants/apollo-clay-video-ref-16x9.png`
+- End frame: SAME image for idle / waiting / review; leave EMPTY for
+  running (the run is cut from the steady middle instead)
+- Save each take as `runs/clay-video/<state>.mp4`
 
 ## idle
 
-The exact dog from the first frame — the same sculpted clay figurine with
-the same markings, proportions, pose, and position — sits perfectly still
-on the same flat, uniform green background. Locked-off static camera, no
-camera motion, no zoom, no cuts. Calm idle motion only: slow gentle
-breathing, one soft blink, small ear twitches, a slow relaxed tail sway.
-The paws never move or lift; the dog never changes position. The dog's
-entire body, including the full tail, stays completely inside the frame
-at all times. The background stays exactly the same flat solid green the
-whole time — no shadows, no gradients, no floor plane. No other objects,
-no text, no watermark.
+A claymation-style sculpted clay figurine with smooth clay surfaces and subtle fingerprint texture of a Jack Russell terrier dog sits upright facing the camera, centered on a flat, solid, uniform chroma-green background (#00B140). The dog matches the provided first frame exactly: a white body and chest, warm caramel-brown patches, a brown-and-white face with a white blaze down the forehead, floppy brown ears, and a white-tipped tail. Locked-off static camera, no camera motion, no zoom, no cuts. Calm idle motion only: slow gentle breathing, one soft blink, small ear twitches, a slow relaxed tail sway. By the end of the video, the dog smoothly returns to its exact starting pose, so the last frame matches the first frame. The paws never move or lift; the dog stays in exactly the same spot for the whole video. The dog's entire body, including the full tail, stays completely inside the frame at all times. The background is one flat solid green everywhere at all times — no shadows, no gradients, no reflections, no floor plane. No other objects, no text, no watermark.
 
 ## waiting
 
-The exact dog from the first frame — the same sculpted clay figurine with
-the same markings, proportions, pose, and position — sits perfectly still
-on the same flat, uniform green background. Locked-off static camera, no
-camera motion, no zoom, no cuts. Expectant waiting motion only: the dog
-tilts its head curiously to one side, then slowly to the other, ears
-perked and swiveling attentively, eyes fixed on the viewer, with gentle
-breathing. The paws never move or lift; the dog never changes position.
-The dog's entire body, including the full tail, stays completely inside
-the frame at all times. The background stays exactly the same flat solid
-green the whole time — no shadows, no gradients, no floor plane. No other
-objects, no text, no watermark.
+A claymation-style sculpted clay figurine with smooth clay surfaces and subtle fingerprint texture of a Jack Russell terrier dog sits upright facing the camera, centered on a flat, solid, uniform chroma-green background (#00B140). The dog matches the provided first frame exactly: a white body and chest, warm caramel-brown patches, a brown-and-white face with a white blaze down the forehead, floppy brown ears, and a white-tipped tail. Locked-off static camera, no camera motion, no zoom, no cuts. Expectant waiting motion only: the dog tilts its head curiously to one side, then slowly to the other, ears perked and swiveling attentively, eyes fixed on the viewer, with gentle breathing. By the end of the video, the dog smoothly returns to its exact starting pose, so the last frame matches the first frame. The paws never move or lift; the dog stays in exactly the same spot for the whole video. The dog's entire body, including the full tail, stays completely inside the frame at all times. The background is one flat solid green everywhere at all times — no shadows, no gradients, no reflections, no floor plane. No other objects, no text, no watermark.
 
-## running (work)
+## running
 
-The exact dog from the first frame — the same sculpted clay figurine with
-the same markings, proportions, pose, and position — sits perfectly still
-on the same flat, uniform green background. Locked-off static camera, no
-camera motion, no zoom, no cuts. Busy, focused motion only: the dog looks
-quickly left, then right, then straight ahead as if intently tracking
-something, ears flicking alertly, quick attentive breathing, tail giving
-short brisk wags. The paws never move or lift; the dog never changes
-position. The dog's entire body, including the full tail, stays
-completely inside the frame at all times. The background stays exactly
-the same flat solid green the whole time — no shadows, no gradients, no
-floor plane. No other objects, no text, no watermark.
+A claymation-style sculpted clay figurine with smooth clay surfaces and subtle fingerprint texture of a Jack Russell terrier dog sits upright facing the camera, centered on a flat, solid, uniform chroma-green background (#00B140). The dog matches the provided first frame exactly: a white body and chest, warm caramel-brown patches, a brown-and-white face with a white blaze down the forehead, floppy brown ears, and a white-tipped tail. Locked-off static camera, no camera motion, no zoom, no cuts. The dog quickly stands up and begins running in place, facing the camera the entire time: a steady, energetic trot on the spot, as if on an invisible treadmill — paws lifting and falling rhythmically while the body stays centered in exactly the same spot, ears bouncing with the motion, tail up and wagging. The dog keeps trotting in place at the same steady rhythm until the very end of the video, never moving forward, backward, or sideways, and never turning away from the camera. The dog's entire body, including the full tail, stays completely inside the frame at all times. The background is one flat solid green everywhere at all times — no shadows, no gradients, no reflections, no floor plane. No other objects, no text, no watermark.
 
 ## review
 
-The exact dog from the first frame — the same sculpted clay figurine with
-the same markings, proportions, pose, and position — sits perfectly still
-on the same flat, uniform green background. Locked-off static camera, no
-camera motion, no zoom, no cuts. Proud, happy motion only: the dog sits
-up a little taller with its chest out, mouth open in a pleased smile,
-tail wagging enthusiastically side to side, one happy blink, ears up.
-The paws never move or lift; the dog never changes position. The dog's
-entire body, including the full tail, stays completely inside the frame
-at all times. The background stays exactly the same flat solid green the
-whole time — no shadows, no gradients, no floor plane. No other objects,
-no text, no watermark.
+A claymation-style sculpted clay figurine with smooth clay surfaces and subtle fingerprint texture of a Jack Russell terrier dog sits upright facing the camera, centered on a flat, solid, uniform chroma-green background (#00B140). The dog matches the provided first frame exactly: a white body and chest, warm caramel-brown patches, a brown-and-white face with a white blaze down the forehead, floppy brown ears, and a white-tipped tail. Locked-off static camera, no camera motion, no zoom, no cuts. The dog's body and head face the camera the entire time and never turn or rotate. Proud, happy motion only: the dog sits up a little taller with its chest out, mouth open in a pleased smile, tail wagging enthusiastically side to side, one happy blink, ears up. By the end of the video, the dog smoothly returns to its exact starting pose, so the last frame matches the first frame. The paws never move or lift; the dog stays in exactly the same spot for the whole video. The dog's entire body, including the full tail, stays completely inside the frame at all times. The background is one flat solid green everywhere at all times — no shadows, no gradients, no reflections, no floor plane. No other objects, no text, no watermark.
+
