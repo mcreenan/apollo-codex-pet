@@ -189,11 +189,17 @@ def build_calm_row(cell, row, n_frames=48, smooth=None):
         # anchor for the whole row. Per-frame bbox anchoring would re-shift
         # frames whenever the lowest pixel moves (a wagging tail) and undo
         # the registration.
+        #   {"frames": "<dir>"}     n_frames video-derived cells (repo-
+        #                           relative dir of PNGs from video_rows.py)
         #   {"rig": {...}, "master": c}  procedural rig: ONE master cell
         #                           deformed into n_frames (scripts/rig.py)
         #   {"cycle": [...]}        keyframe cells in loop order, expanded to
         #                           n_frames by optical-flow interpolation
         #   {"track": [...], "hold": h}  literal playback, track*hold frames
+        if "frames" in smooth:
+            paths = sorted(Path(smooth["frames"]).glob("*.png"))
+            assert len(paths) == n_frames, (row, len(paths))
+            return [place(Image.open(p).convert("RGBA")) for p in paths]
         if "rig" in smooth:
             # rig in raw sheet coords (programs are measured there), then
             # place() each frame identically: deformations keep the bbox

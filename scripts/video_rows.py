@@ -67,7 +67,35 @@ def main():
         for p in paths:
             f = Image.open(p).convert("RGBA").crop(crop).resize(
                 size, Image.LANCZOS)
-            frames.append(xr.key_background(f, key))
+            f = xr.key_background(f, key)
+            # keep only the dog: drop small disconnected blobs (generator
+            # watermarks, sparkle artifacts) that survive keying and would
+            # stretch the union bbox
+            px = f.load()
+            comps = xr._components(*f.size,
+                                   lambda x, y: px[x, y][3] >= 16)
+            if comps:
+                main = max(comps, key=len)
+                for comp in comps:
+                    if comp is not main and len(comp) < 0.3 * len(main):
+                        for x, y in comp:
+                            px[x, y] = (0, 0, 0, 0)
+            # interior despill: video lighting bounces the key color onto
+            # the subject as small bright-green specks; cap any strongly
+            # key-dominant channel on opaque pixels
+            k = max(range(3), key=lambda i: key[i])
+            W2, H2 = f.size
+            for y in range(H2):
+                for x in range(W2):
+                    c = px[x, y]
+                    if c[3] < 16:
+                        continue
+                    others = max(c[i] for i in range(3) if i != k)
+                    if c[k] > others + 24:
+                        c = list(c)
+                        c[k] = others
+                        px[x, y] = tuple(c)
+            frames.append(f)
 
         # loop window: frames i and i+L most alike for L near n
         thumbs = [f.resize((48, 64), Image.BILINEAR).tobytes()
