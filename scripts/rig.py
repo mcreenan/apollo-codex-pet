@@ -48,22 +48,45 @@ def band_warp(img, dx_of_y, dy_of_y, band=4):
     return img.transform((W, H), Image.MESH, mesh, resample=Image.BICUBIC)
 
 
+def _premul(img, alpha):
+    r, g, b = img.split()[:3]
+    return Image.merge("RGBA", (ImageChops.multiply(r, alpha),
+                                ImageChops.multiply(g, alpha),
+                                ImageChops.multiply(b, alpha), alpha))
+
+
 def rotate_layer(img, theta, ellipse, pivot, feather=5):
-    """Rotate a feather-masked region (tail, raised paw) about a pivot."""
+    """Rotate a feather-masked region (tail, ear, raised paw) about a pivot.
+
+    Compositing happens in PREMULTIPLIED alpha with linear addition:
+    out = orig*(1-mask) + rotate(orig*mask). At theta=0 this reconstructs
+    the original exactly (an over-composite of feather-split halves leaves
+    a translucent ring), and when rotated the region genuinely vanishes
+    from its old position (an over-composite on the uncut original leaves
+    a static ghost behind the moved copy)."""
     if not theta:
         return img
     mask = Image.new("L", img.size, 0)
     ImageDraw.Draw(mask).ellipse(tuple(ellipse), fill=255)
     mask = mask.filter(ImageFilter.GaussianBlur(feather))
-    layer = img.copy()
-    layer.putalpha(ImageChops.multiply(img.getchannel("A"), mask))
-    # composite over the UNCUT original: cutting a feathered hole makes the
-    # whole feather ring translucent wherever the mask sits over opaque
-    # body. Small rotations cover their own trailing edge, so the static
-    # copy underneath stays hidden.
-    out = img.copy()
-    out.alpha_composite(layer.rotate(theta, resample=Image.BICUBIC,
-                                     center=tuple(pivot)))
+    a = img.getchannel("A")
+    inv = ImageChops.invert(mask)
+    body_p = _premul(img, ImageChops.multiply(a, inv))
+    layer_p = _premul(img, ImageChops.multiply(a, mask)).rotate(
+        theta, resample=Image.BICUBIC, center=tuple(pivot))
+    out = Image.merge("RGBA", [ImageChops.add(bc, lc) for bc, lc in
+                               zip(body_p.split(), layer_p.split())])
+    # un-premultiply the semi-transparent edge pixels (interior is exact)
+    px = out.load()
+    W, H = out.size
+    for y in range(H):
+        for x in range(W):
+            av = px[x, y][3]
+            if 0 < av < 255:
+                r, g, b, _ = px[x, y]
+                px[x, y] = (min(255, r * 255 // av),
+                            min(255, g * 255 // av),
+                            min(255, b * 255 // av), av)
     return out
 
 
@@ -76,6 +99,24 @@ IDLE = {
     "layers": [{"amp": 3.0, "freq": 2, "phase": 0.9,
                 "ellipse": (34, 136, 82, 196), "pivot": (76, 166)}],
 }
+
+
+def apply_patch(master, patch, weight, _cache={}):
+    """Blend a rect region from a patch image (e.g. a closed-eye master for
+    blinks) over the master at the given weight. frames maps frame index ->
+    weight, so a blink is two full frames flanked by half-blend frames."""
+    key = patch["src"]
+    if key not in _cache:
+        img = Image.open(patch["src"]).convert("RGBA")
+        if img.size != master.size:
+            img = img.resize(master.size, Image.LANCZOS)
+        mask = Image.new("L", master.size, 0)
+        ImageDraw.Draw(mask).rectangle(tuple(patch["rect"]), fill=255)
+        mask = mask.filter(ImageFilter.GaussianBlur(patch.get("feather", 3)))
+        _cache[key] = (img, mask)
+    img, mask = _cache[key]
+    blended = Image.blend(master, img, weight)
+    return Image.composite(blended, master, mask)
 
 
 def render(master, prog, n_frames=N_FRAMES):
@@ -91,10 +132,19 @@ def render(master, prog, n_frames=N_FRAMES):
         def w(y):  # sway weight: 1 at head, 0 at ground
             return max(0.0, (GROUND_Y - y) / (GROUND_Y - 5)) ** 1.3
 
-        def v(y):  # breath weight
-            return max(0.0, (GROUND_Y + 7 - y) / (GROUND_Y - 5))
+        def v(y):  # breath weight: chest-centered — a uniform whole-body
+            # lift reads as bad anchoring, breathing lives in the torso
+            c = breath.get("center", 115)
+            sig = breath.get("sigma", 55)
+            return (math.exp(-((y - c) / sig) ** 2)
+                    * min(1.0, max(0.0, (GROUND_Y - y) / 12)))
 
         img = master
+        patch = prog.get("patch")
+        if patch:
+            wgt = float(patch.get("frames", {}).get(str(i), 0.0))
+            if wgt > 0:
+                img = apply_patch(master, patch, wgt)
         for lay in prog.get("layers", []):
             theta = lay["amp"] * math.sin(
                 2 * math.pi * lay["freq"] * t + lay.get("phase", 0.0))

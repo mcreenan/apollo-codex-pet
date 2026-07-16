@@ -1,23 +1,325 @@
 {
-  "_comment": "Procedural rig per played state (scripts/rig.py): every frame derives from the row's master cell via small deterministic deformations — sway/breath amplitudes in px, layer rotations in degrees about a pivot, freq = cycles per 4s loop (integer for a seamless wrap). Geometry (ellipses/pivots) is measured on this style's master cells in raw sheet coords.",
-  "idle": {"master": 0, "rig": {
-    "sway":   {"amp": 1.6, "freq": 1},
-    "breath": {"amp": 1.6, "freq": 2},
-    "layers": [{"amp": 3.0, "freq": 2, "phase": 0.9,
-                "ellipse": [34, 136, 82, 196], "pivot": [76, 166]}]}},
-  "wait": {"master": 0, "rig": {
-    "sway":   {"amp": 1.4, "freq": 1},
-    "breath": {"amp": 1.8, "freq": 2},
-    "layers": [{"amp": 2.5, "freq": 2,
-                "ellipse": [26, 146, 70, 192], "pivot": [68, 170]},
-               {"amp": 4.0, "freq": 3, "feather": 4,
-                "ellipse": [98, 106, 138, 152], "pivot": [122, 150]}]}},
-  "work": {"master": 0, "rig": {
-    "sway":   {"amp": 1.2, "freq": 2},
-    "breath": {"amp": 2.8, "freq": 4}}},
-  "review": {"master": 0, "rig": {
-    "sway":   {"amp": 1.2, "freq": 1},
-    "breath": {"amp": 2.0, "freq": 2},
-    "layers": [{"amp": 6.0, "freq": 4,
-                "ellipse": [24, 142, 72, 190], "pivot": [72, 166]}]}}
+  "_comment": "Procedural rig per played state (scripts/rig.py): every frame derives from the row's master cell via small deterministic deformations \u2014 sway/breath amplitudes in px, layer rotations in degrees about a pivot, freq = cycles per 4s loop (integer for a seamless wrap). Geometry (ellipses/pivots) is measured on this style's master cells in raw sheet coords.",
+  "idle": {
+    "master": 0,
+    "rig": {
+      "sway": {
+        "amp": 1.4,
+        "freq": 1
+      },
+      "breath": {
+        "amp": 2.0,
+        "freq": 2
+      },
+      "layers": [
+        {
+          "amp": 5.0,
+          "freq": 3,
+          "feather": 4,
+          "ellipse": [
+            54,
+            4,
+            88,
+            40
+          ],
+          "pivot": [
+            84,
+            34
+          ]
+        },
+        {
+          "amp": 4.0,
+          "freq": 2,
+          "phase": 1.5,
+          "feather": 4,
+          "ellipse": [
+            114,
+            6,
+            152,
+            48
+          ],
+          "pivot": [
+            120,
+            36
+          ]
+        },
+        {
+          "amp": 3.0,
+          "freq": 2,
+          "phase": 0.9,
+          "ellipse": [
+            34,
+            136,
+            82,
+            196
+          ],
+          "pivot": [
+            76,
+            166
+          ]
+        },
+        {
+          "amp": 1.8,
+          "freq": 1,
+          "phase": 0.5,
+          "feather": 7,
+          "ellipse": [
+            50,
+            2,
+            152,
+            88
+          ],
+          "pivot": [
+            98,
+            86
+          ]
+        }
+      ],
+      "patch": {
+        "src": "runs/clay-smooth/references/idle-blink2.png",
+        "rect": [
+          64,
+          14,
+          140,
+          58
+        ],
+        "feather": 4,
+        "frames": {
+          "25": 0.5,
+          "26": 1.0,
+          "27": 1.0,
+          "28": 0.5
+        }
+      }
+    }
+  },
+  "wait": {
+    "master": 0,
+    "rig": {
+      "sway": {
+        "amp": 1.4,
+        "freq": 1
+      },
+      "breath": {
+        "amp": 1.8,
+        "freq": 2
+      },
+      "layers": [
+        {
+          "amp": 4.5,
+          "freq": 3,
+          "feather": 4,
+          "ellipse": [
+            58,
+            10,
+            90,
+            42
+          ],
+          "pivot": [
+            86,
+            38
+          ]
+        },
+        {
+          "amp": 4.0,
+          "freq": 2,
+          "phase": 1.2,
+          "feather": 4,
+          "ellipse": [
+            116,
+            16,
+            147,
+            50
+          ],
+          "pivot": [
+            120,
+            42
+          ]
+        },
+        {
+          "amp": 2.5,
+          "freq": 2,
+          "ellipse": [
+            26,
+            146,
+            70,
+            192
+          ],
+          "pivot": [
+            68,
+            170
+          ]
+        },
+        {
+          "amp": 4.0,
+          "freq": 3,
+          "feather": 4,
+          "ellipse": [
+            98,
+            106,
+            138,
+            152
+          ],
+          "pivot": [
+            122,
+            150
+          ]
+        },
+        {
+          "amp": 2.2,
+          "freq": 2,
+          "phase": 0.6,
+          "feather": 7,
+          "ellipse": [
+            52,
+            5,
+            148,
+            92
+          ],
+          "pivot": [
+            100,
+            88
+          ]
+        }
+      ]
+    }
+  },
+  "work": {
+    "master": 0,
+    "rig": {
+      "sway": {
+        "amp": 1.2,
+        "freq": 2
+      },
+      "breath": {
+        "amp": 2.4,
+        "freq": 4
+      },
+      "layers": [
+        {
+          "amp": 5.0,
+          "freq": 4,
+          "feather": 4,
+          "ellipse": [
+            46,
+            10,
+            82,
+            50
+          ],
+          "pivot": [
+            80,
+            44
+          ]
+        },
+        {
+          "amp": 4.5,
+          "freq": 4,
+          "phase": 1.6,
+          "feather": 4,
+          "ellipse": [
+            100,
+            12,
+            136,
+            52
+          ],
+          "pivot": [
+            104,
+            46
+          ]
+        },
+        {
+          "amp": 1.6,
+          "freq": 2,
+          "phase": 0.4,
+          "feather": 7,
+          "ellipse": [
+            44,
+            3,
+            142,
+            96
+          ],
+          "pivot": [
+            95,
+            92
+          ]
+        }
+      ]
+    }
+  },
+  "review": {
+    "master": 0,
+    "rig": {
+      "sway": {
+        "amp": 1.2,
+        "freq": 1
+      },
+      "breath": {
+        "amp": 2.0,
+        "freq": 2
+      },
+      "layers": [
+        {
+          "amp": 4.5,
+          "freq": 3,
+          "feather": 4,
+          "ellipse": [
+            74,
+            10,
+            108,
+            46
+          ],
+          "pivot": [
+            102,
+            42
+          ]
+        },
+        {
+          "amp": 4.0,
+          "freq": 2,
+          "phase": 1.4,
+          "feather": 4,
+          "ellipse": [
+            136,
+            18,
+            162,
+            56
+          ],
+          "pivot": [
+            140,
+            46
+          ]
+        },
+        {
+          "amp": 6.0,
+          "freq": 4,
+          "ellipse": [
+            24,
+            142,
+            72,
+            190
+          ],
+          "pivot": [
+            72,
+            166
+          ]
+        },
+        {
+          "amp": 1.8,
+          "freq": 2,
+          "phase": 0.7,
+          "feather": 7,
+          "ellipse": [
+            70,
+            3,
+            164,
+            94
+          ],
+          "pivot": [
+            114,
+            90
+          ]
+        }
+      ]
+    }
+  }
 }
