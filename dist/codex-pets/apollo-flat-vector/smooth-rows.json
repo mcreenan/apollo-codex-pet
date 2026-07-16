@@ -7,7 +7,7 @@
     "frames": "runs/flat-vector-video/cells/running"
   },
   "idle": {
-    "frames": "runs/flat-vector-video/cells/idle"
+    "frames": "runs/flat-vector-video/cells/idle-sleep"
   },
   "review": {
     "frames": "runs/flat-vector-video/cells/review"
