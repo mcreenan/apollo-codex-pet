@@ -13,15 +13,21 @@ content scale buys ~15px vertical headroom inside the 192x208 cell so
 transforms never clip (source sprites only have 5px top margin).
 
 Usage: orca-bundle.py <src_pet_dir> <dst_bundle_dir>
+       orca-bundle.py --preview <src_pet_dir> [gif_out_dir]
 """
 import itertools
 import json
 import math
 import shutil
+import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 from PIL import Image
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import rig  # noqa: E402
 
 CELL_W, CELL_H = 192, 208
 COLS = 48
@@ -65,6 +71,71 @@ def place(cell, dx=0.0, dy=0.0, rot=0.0, sx=1.0, sy=1.0):
         frame = frame.rotate(rot, resample=Image.BICUBIC,
                              center=(anchor_x, anchor_y))
     return frame
+
+
+INTERP_PAD = 32   # gap between the RGB and alpha halves of the interp canvas
+INTERP_MATTE = 60  # neutral gray the RGB half is composited onto
+
+
+def interp_cycle(keyframes, n_frames=COLS):
+    """Expand a short keyframe cycle into n_frames optical-flow in-betweens.
+
+    Generated strips only stay on-model for a handful of frames, so high
+    frame counts come from interpolation, not generation: ffmpeg's
+    minterpolate synthesizes the in-betweens deterministically and cannot
+    drift the character. RGB (composited on neutral gray) and alpha ride
+    side by side on one canvas so both get identical motion vectors; three
+    copies of the cycle are interpolated and the middle one kept, so the
+    wrap seam is interpolated like any other neighbor and the loop is
+    seamless.
+    """
+    C = len(keyframes)
+    fps, rem = divmod(n_frames, C)
+    assert rem == 0, f"cycle length {C} must divide {n_frames}"
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        (tmp / "in").mkdir()
+        (tmp / "out").mkdir()
+        for i in range(3 * C):
+            f = keyframes[i % C]
+            canvas = Image.new("RGB", (CELL_W * 2 + INTERP_PAD, CELL_H),
+                               (INTERP_MATTE,) * 3)
+            rgb = Image.new("RGB", (CELL_W, CELL_H), (INTERP_MATTE,) * 3)
+            rgb.paste(f, (0, 0), f)
+            canvas.paste(rgb, (0, 0))
+            canvas.paste(f.getchannel("A").convert("RGB"),
+                         (CELL_W + INTERP_PAD, 0))
+            canvas.save(tmp / "in" / f"{i:03d}.png")
+        subprocess.run(
+            ["ffmpeg", "-loglevel", "error", "-framerate", "1",
+             "-i", str(tmp / "in" / "%03d.png"),
+             "-vf", f"minterpolate=fps={fps}:mi_mode=mci:mc_mode=aobmc:"
+                    "me_mode=bidir:vsbmc=1",
+             "-start_number", "0", str(tmp / "out" / "%03d.png")],
+            check=True)
+        frames = []
+        for i in range(n_frames, 2 * n_frames):  # middle cycle only
+            canvas = Image.open(tmp / "out" / f"{i:03d}.png").convert("RGB")
+            rgb = canvas.crop((0, 0, CELL_W, CELL_H)).load()
+            alpha = canvas.crop((CELL_W + INTERP_PAD, 0,
+                                 CELL_W * 2 + INTERP_PAD, CELL_H))
+            al = alpha.convert("L").load()
+            frame = Image.new("RGBA", (CELL_W, CELL_H), (0, 0, 0, 0))
+            fp = frame.load()
+            for y in range(CELL_H):
+                for x in range(CELL_W):
+                    a = al[x, y]
+                    if a < 12:  # kill matte fringe
+                        continue
+                    r, g, b = rgb[x, y]
+                    if a < 255:  # un-composite from the gray matte
+                        m = INTERP_MATTE * (255 - a)
+                        r = min(255, max(0, round((r * 255 - m) / a)))
+                        g = min(255, max(0, round((g * 255 - m) / a)))
+                        b = min(255, max(0, round((b * 255 - m) / a)))
+                    fp[x, y] = (r, g, b, a)
+            frames.append(frame)
+    return frames
 
 
 def similarity_cycle(cells, k_min=4):
@@ -114,12 +185,27 @@ def build_calm_row(cell, row, n_frames=48, smooth=None):
     not a metronome. Calm states hold poses 8 frames to cut pose-snap rate."""
     if smooth:
         # Row was regenerated as a continuous in-between loop with frames
-        # already feet-registered to each other: play the authored track at
-        # its natural cadence with ONE shared anchor for the whole row.
-        # Per-frame bbox anchoring would re-shift frames whenever the lowest
-        # pixel moves (a wagging tail) and undo the registration.
-        track = [p for p in smooth["track"] for _ in range(smooth["hold"])]
-        assert len(track) == n_frames, (row, len(track))
+        # already feet-registered to each other, so frames get ONE shared
+        # anchor for the whole row. Per-frame bbox anchoring would re-shift
+        # frames whenever the lowest pixel moves (a wagging tail) and undo
+        # the registration.
+        #   {"rig": {...}, "master": c}  procedural rig: ONE master cell
+        #                           deformed into n_frames (scripts/rig.py)
+        #   {"cycle": [...]}        keyframe cells in loop order, expanded to
+        #                           n_frames by optical-flow interpolation
+        #   {"track": [...], "hold": h}  literal playback, track*hold frames
+        if "rig" in smooth:
+            # rig in raw sheet coords (programs are measured there), then
+            # place() each frame identically: deformations keep the bbox
+            # bottom static, so per-frame anchoring cannot re-shift frames
+            master = cell(row, smooth.get("master", 0))
+            return [place(f) for f in rig.render(master, smooth["rig"],
+                                                 n_frames)]
+        if "cycle" in smooth:
+            track = smooth["cycle"]
+        else:
+            track = [p for p in smooth["track"] for _ in range(smooth["hold"])]
+            assert len(track) == n_frames, (row, len(track))
         w = round(CELL_W * BAKED_SCALE)
         h = round(CELL_H * BAKED_SCALE)
         imgs = {p: cell(row, p).resize((w, h), Image.LANCZOS)
@@ -131,6 +217,21 @@ def build_calm_row(cell, row, n_frames=48, smooth=None):
             frame = Image.new("RGBA", (CELL_W, CELL_H), (0, 0, 0, 0))
             frame.paste(imgs[p], ((CELL_W - w) // 2, dy), imgs[p])
             frames.append(frame)
+        if "cycle" in smooth:
+            frames = interp_cycle(frames, n_frames)
+            # Pose-to-pose retiming: uniform interpolation output means every
+            # frame is mid-warp, which reads as morphing, not animation. Rest
+            # on each keyframe and spend only a few eased frames traveling.
+            seg = n_frames // len(track)
+            trans = smooth.get("transition", max(2, seg // 3))
+            retimed = []
+            for s in range(len(track)):
+                retimed.extend([frames[s * seg]] * (seg - trans))
+                for j in range(1, trans + 1):
+                    t = j / (trans + 1)
+                    e = t * t * (3 - 2 * t)  # smoothstep ease in/out
+                    retimed.append(frames[s * seg + min(seg - 1, round(e * seg))])
+            frames = retimed
         return frames
     # Every other played state gets the calm treatment: smoothest pose order
     # and long holds. Its poses are never in-betweens, so frequent snaps
@@ -167,14 +268,39 @@ def build_calm_row(cell, row, n_frames=48, smooth=None):
     return frames
 
 
+def load_smooth(src):
+    smooth_path = src / "smooth-rows.json"
+    if not smooth_path.exists():
+        return {}
+    return {k: v for k, v in json.loads(smooth_path.read_text()).items()
+            if not k.startswith("_")}
+
+
+def preview(src_dir, out_dir):
+    """Render the four played states exactly as Orca will play them —
+    including interpolation — as 2x GIFs, without building a bundle.
+    Pipeline gate: eyeball these before orca-bundle.py <src> <dst>."""
+    src, out = Path(src_dir), Path(out_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    cell = load_cells(src / "spritesheet.webp")
+    smooth = load_smooth(src)
+    for row in ("idle", "wait", "work", "review"):
+        frames = build_calm_row(cell, row, smooth=smooth.get(row))
+        gif = []
+        for f in frames:
+            bg = Image.new("RGBA", f.size, (32, 32, 32, 255))
+            bg.paste(f, (0, 0), f)
+            gif.append(bg.convert("RGB").resize(
+                (f.size[0] * 2, f.size[1] * 2), Image.NEAREST))
+        gif[0].save(out / f"{row}.gif", save_all=True, append_images=gif[1:],
+                    duration=round(1000 / FPS), loop=0)
+        print(f"{out / (row + '.gif')}: {len(frames)} frames @ {FPS}fps")
+
+
 def build(src_dir, dst_dir):
     src, dst = Path(src_dir), Path(dst_dir)
     cell = load_cells(src / "spritesheet.webp")
-    smooth_path = src / "smooth-rows.json"
-    smooth = {}
-    if smooth_path.exists():
-        smooth = {k: v for k, v in json.loads(smooth_path.read_text()).items()
-                  if not k.startswith("_")}
+    smooth = load_smooth(src)
 
     rows = {}  # orca row index -> list of frames
     rows[0] = build_calm_row(cell, "idle", smooth=smooth.get("idle"))
@@ -219,4 +345,7 @@ def build(src_dir, dst_dir):
 
 
 if __name__ == "__main__":
-    build(sys.argv[1], sys.argv[2])
+    if sys.argv[1] == "--preview":
+        preview(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else "qa/preview")
+    else:
+        build(sys.argv[1], sys.argv[2])

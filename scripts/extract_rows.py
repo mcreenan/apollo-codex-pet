@@ -20,7 +20,7 @@ from pathlib import Path
 from PIL import Image
 
 CELL_W, CELL_H = 192, 208
-KEY = (0, 177, 64)
+KEY = (0, 177, 64)  # default; --key auto detects from the strip border
 THRESHOLD = 96.0
 BOTTOM_MARGIN = 5
 
@@ -51,7 +51,19 @@ def _components(W, H, member):
     return comps
 
 
-def key_background(slot):
+def detect_key(strip):
+    """Median RGB of the strip's outer border — the background color.
+    Some generation runs came back on the wrong backdrop (blue instead of
+    chroma green); keying whatever actually surrounds the art is robust."""
+    px = strip.load()
+    W, H = strip.size
+    border = [px[x, y][:3] for x in range(W) for y in (0, H - 1)]
+    border += [px[x, y][:3] for y in range(H) for x in (0, W - 1)]
+    chans = list(zip(*border))
+    return tuple(sorted(c)[len(c) // 2] for c in chans)
+
+
+def key_background(slot, key=KEY):
     """Key the background without eating the pet.
 
     Transparent = chroma-distance pixels connected to the slot border, plus
@@ -65,7 +77,7 @@ def key_background(slot):
 
     def dist2(x, y):
         r, g, b = px[x, y][:3]
-        return (r - KEY[0])**2 + (g - KEY[1])**2 + (b - KEY[2])**2
+        return (r - key[0])**2 + (g - key[1])**2 + (b - key[2])**2
 
     chroma = _components(W, H, lambda x, y: dist2(x, y) <= t2)
     keyed = set()
@@ -91,13 +103,17 @@ def key_background(slot):
                     px[x, y] = (0, 0, 0, 0)
                 keyed.update(comp)
 
-    # despill: on opaque pixels bordering keyed areas, cap green
+    # despill: on opaque pixels bordering keyed areas, cap the key's
+    # dominant channel (green for chroma green, blue for a blue backdrop)
+    k = max(range(3), key=lambda i: key[i])
     for x, y in list(keyed):
         for nx, ny in ((x-1, y), (x+1, y), (x, y-1), (x, y+1)):
             if 0 <= nx < W and 0 <= ny < H and (nx, ny) not in keyed:
-                r, g, b, a = px[nx, ny]
-                if a and g > max(r, b):
-                    px[nx, ny] = (r, max(r, b), b, a)
+                c = list(px[nx, ny])
+                others = max(c[i] for i in range(3) if i != k)
+                if c[3] and c[k] > others:
+                    c[k] = others
+                    px[nx, ny] = tuple(c)
     return slot
 
 
@@ -108,12 +124,24 @@ def main():
     ap.add_argument("out_dir")
     ap.add_argument("--target-height", type=int, default=None,
                     help="content height (px) the tallest frame should get")
+    ap.add_argument("--key", default=None,
+                    help="'auto' to detect from strip border, or R,G,B")
+    ap.add_argument("--ref", type=int, default=0,
+                    help="slot all others register to (skip a broken slot 0)")
     args = ap.parse_args()
 
     strip = Image.open(args.strip).convert("RGBA")
+    if args.key == "auto":
+        key = detect_key(strip)
+        print("detected key:", key)
+    elif args.key:
+        key = tuple(int(v) for v in args.key.split(","))
+    else:
+        key = KEY
     W, H = strip.size
     slot_w = W // args.n_frames
-    slots = [key_background(strip.crop((i * slot_w, 0, (i + 1) * slot_w, H)))
+    slots = [key_background(strip.crop((i * slot_w, 0, (i + 1) * slot_w, H)),
+                            key)
              for i in range(args.n_frames)]
 
     # registration: the pet drifts AND leans progressively across drawn
@@ -125,13 +153,16 @@ def main():
         return img.getchannel("A").resize(
             (img.size[0] // 2, img.size[1] // 2), Image.BILINEAR)
 
-    ref = half_alpha(slots[0])
+    ref = half_alpha(slots[args.ref])
     ref_bytes = ref.tobytes()
     RW, RH = ref.size
-    rb = slots[0].getchannel("A").getbbox()
+    rb = slots[args.ref].getchannel("A").getbbox()
     pivot = ((rb[0] + rb[2]) / 2, rb[3])  # foot center, full-res coords
-    residuals = [0.0]
-    for i in range(1, args.n_frames):
+    residuals = []
+    for i in range(args.n_frames):
+        if i == args.ref:
+            residuals.append(0.0)
+            continue
         base = slots[i]
         def sad_at(rot, dx, dy, _cache={}):
             if rot not in _cache:

@@ -1,7 +1,23 @@
 {
-  "_comment": "Rows regenerated as continuous loops (runs/clay-smooth via scripts/extract_rows.py). Only the affine-aligned frame subsets survived (later strip slots drift); each sheet row is authored AS a ping-pong sequence, so sequential playback (and its wrap) is always drawn-adjacent. track indexes sheet cells; len(track)*hold == 48.",
-  "idle":   {"track": [0, 1, 2, 3, 4, 5], "hold": 8},
-  "wait":   {"track": [0, 1, 2, 3, 4, 5], "hold": 8},
-  "work":   {"track": [0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5], "hold": 2},
-  "review": {"track": [0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5], "hold": 4}
+  "_comment": "Procedural rig per played state (scripts/rig.py): every frame derives from the row's master cell via small deterministic deformations — sway/breath amplitudes in px, layer rotations in degrees about a pivot, freq = cycles per 4s loop (integer for a seamless wrap). Geometry (ellipses/pivots) is measured on this style's master cells in raw sheet coords.",
+  "idle": {"master": 0, "rig": {
+    "sway":   {"amp": 1.6, "freq": 1},
+    "breath": {"amp": 1.6, "freq": 2},
+    "layers": [{"amp": 3.0, "freq": 2, "phase": 0.9,
+                "ellipse": [34, 136, 82, 196], "pivot": [76, 166]}]}},
+  "wait": {"master": 0, "rig": {
+    "sway":   {"amp": 1.4, "freq": 1},
+    "breath": {"amp": 1.8, "freq": 2},
+    "layers": [{"amp": 2.5, "freq": 2,
+                "ellipse": [26, 146, 70, 192], "pivot": [68, 170]},
+               {"amp": 4.0, "freq": 3, "feather": 4,
+                "ellipse": [98, 106, 138, 152], "pivot": [122, 150]}]}},
+  "work": {"master": 0, "rig": {
+    "sway":   {"amp": 1.2, "freq": 2},
+    "breath": {"amp": 2.8, "freq": 4}}},
+  "review": {"master": 0, "rig": {
+    "sway":   {"amp": 1.2, "freq": 1},
+    "breath": {"amp": 2.0, "freq": 2},
+    "layers": [{"amp": 6.0, "freq": 4,
+                "ellipse": [24, 142, 72, 190], "pivot": [72, 166]}]}}
 }
