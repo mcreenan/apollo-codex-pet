@@ -39,6 +39,9 @@ def main():
     ap.add_argument("--n", type=int, default=48)
     ap.add_argument("--target-height", type=int, default=198)
     ap.add_argument("--gif", default=None)
+    ap.add_argument("--skip", type=float, default=0.0,
+                    help="seconds to drop from the clip start (e.g. a "
+                         "stand-up transition before a run-in-place loop)")
     args = ap.parse_args()
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -46,8 +49,9 @@ def main():
         subprocess.run(
             ["ffmpeg", "-loglevel", "error", "-i", args.video,
              "-vf", f"fps={args.fps}", str(tmp / "%04d.png")], check=True)
-        paths = sorted(tmp.glob("*.png"))
-        print(f"{len(paths)} frames @ {args.fps}fps")
+        paths = sorted(tmp.glob("*.png"))[round(args.skip * args.fps):]
+        print(f"{len(paths)} frames @ {args.fps}fps"
+              f"{f' (skipped first {args.skip}s)' if args.skip else ''}")
 
         # subject crop from frame 0's key, padded; then key small
         first = Image.open(paths[0]).convert("RGBA")

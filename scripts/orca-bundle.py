@@ -199,7 +199,21 @@ def build_calm_row(cell, row, n_frames=48, smooth=None):
         if "frames" in smooth:
             paths = sorted(Path(smooth["frames"]).glob("*.png"))
             assert len(paths) == n_frames, (row, len(paths))
-            return [place(Image.open(p).convert("RGBA")) for p in paths]
+            # ONE shared anchor for the row: per-frame bbox anchoring would
+            # flatten real vertical motion (a trot's bounce) into foot-slide
+            w = round(CELL_W * BAKED_SCALE)
+            h = round(CELL_H * BAKED_SCALE)
+            imgs = [Image.open(p).convert("RGBA").resize((w, h),
+                                                         Image.LANCZOS)
+                    for p in paths]
+            dy = BASELINE_Y - max(i.getchannel("A").getbbox()[3]
+                                  for i in imgs)
+            frames = []
+            for img in imgs:
+                frame = Image.new("RGBA", (CELL_W, CELL_H), (0, 0, 0, 0))
+                frame.paste(img, ((CELL_W - w) // 2, dy), img)
+                frames.append(frame)
+            return frames
         if "rig" in smooth:
             # rig in raw sheet coords (programs are measured there), then
             # place() each frame identically: deformations keep the bbox
