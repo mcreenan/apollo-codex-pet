@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "run_dir": "/Users/mcreenan/dog-pet-photos/runs/flat-vector",
+  "spritesheet": "/Users/mcreenan/dog-pet-photos/runs/flat-vector/final/spritesheet.webp",
+  "validation": "/Users/mcreenan/dog-pet-photos/runs/flat-vector/final/validation.json",
+  "contact_sheet": "/Users/mcreenan/dog-pet-photos/runs/flat-vector/qa/contact-sheet.png",
+  "review": "/Users/mcreenan/dog-pet-photos/runs/flat-vector/qa/review.json",
+  "package": "/Users/mcreenan/dog-pet-photos/runs/flat-vector/package-staging/apollo-flat-vector",
+  "visual_qa": "pass",
+  "notes": "running-left derived from approved running-right; jumping regenerated after source-level scale instability."
+}

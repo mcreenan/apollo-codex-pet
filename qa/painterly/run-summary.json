@@ -1,0 +1,11 @@
+{
+  "ok": false,
+  "run_dir": "/Users/mcreenan/dog-pet-photos/runs/painterly",
+  "spritesheet": "/Users/mcreenan/dog-pet-photos/runs/painterly/final/spritesheet.webp",
+  "validation": "/Users/mcreenan/dog-pet-photos/runs/painterly/final/validation.json",
+  "contact_sheet": "/Users/mcreenan/dog-pet-photos/runs/painterly/qa/contact-sheet.png",
+  "review": "/Users/mcreenan/dog-pet-photos/runs/painterly/qa/review.json",
+  "package": "/Users/mcreenan/.codex/pets/apollo-painterly",
+  "visual_qa": "fail",
+  "note": "Failed row retains detached fragments after two repair passes; accepted as best effort."
+}

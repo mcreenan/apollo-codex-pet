@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "run_dir": "/Users/mcreenan/dog-pet-photos/runs/sticker",
+  "spritesheet": "/Users/mcreenan/dog-pet-photos/runs/sticker/final/spritesheet.webp",
+  "validation": "/Users/mcreenan/dog-pet-photos/runs/sticker/final/validation.json",
+  "contact_sheet": "/Users/mcreenan/dog-pet-photos/runs/sticker/qa/contact-sheet.png",
+  "review": "/Users/mcreenan/dog-pet-photos/runs/sticker/qa/review.json",
+  "package": "/Users/mcreenan/dog-pet-photos/runs/sticker/package-staging/apollo-sticker",
+  "visual_qa": "pass",
+  "package_install_blocked": "Sandbox denied writing ~/.codex/pets"
+}

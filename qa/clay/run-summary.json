@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "run_dir": "/Users/mcreenan/dog-pet-photos/runs/clay",
+  "spritesheet": "/Users/mcreenan/dog-pet-photos/runs/clay/final/spritesheet.webp",
+  "validation": "/Users/mcreenan/dog-pet-photos/runs/clay/final/validation.json",
+  "contact_sheet": "/Users/mcreenan/dog-pet-photos/runs/clay/qa/contact-sheet.png",
+  "review": "/Users/mcreenan/dog-pet-photos/runs/clay/qa/review.json",
+  "package": "/Users/mcreenan/dog-pet-photos/runs/clay/package/apollo-clay",
+  "visual_qa": "pass",
+  "install_status": "staged; sandbox denied write to ~/.codex/pets"
+}

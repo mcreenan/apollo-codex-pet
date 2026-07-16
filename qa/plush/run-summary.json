@@ -1,0 +1,11 @@
+{
+  "ok": true,
+  "run_dir": "/Users/mcreenan/dog-pet-photos/runs/plush",
+  "spritesheet": "/Users/mcreenan/dog-pet-photos/runs/plush/final/spritesheet.webp",
+  "validation": "/Users/mcreenan/dog-pet-photos/runs/plush/final/validation.json",
+  "contact_sheet": "/Users/mcreenan/dog-pet-photos/runs/plush/qa/contact-sheet.png",
+  "review": "/Users/mcreenan/dog-pet-photos/runs/plush/qa/review.json",
+  "package": "/Users/mcreenan/dog-pet-photos/runs/plush/package-staging/apollo-plush",
+  "requested_package": "/Users/mcreenan/.codex/pets/apollo-plush",
+  "package_error": "Install path is outside the writable sandbox."
+}
