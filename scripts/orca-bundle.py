@@ -105,15 +105,22 @@ def similarity_cycle(cells, k_min=4):
     return order
 
 
-def build_calm_row(cell, row, n_frames=48):
+def build_calm_row(cell, row, n_frames=48, smooth_hold=None):
     """Choreographed loop for one played state. All sine terms complete
     integer cycles over n_frames so frame N-1 flows back into frame 0.
 
     Rotations pivot about the feet, which doubles how far the head travels
     vs a center pivot — amplitudes stay small so sway reads as breathing,
     not a metronome. Calm states hold poses 8 frames to cut pose-snap rate."""
-    # Every played state gets the calm treatment: smoothest pose order and
-    # long holds. Generated poses are never in-betweens, so frequent snaps
+    if smooth_hold:
+        # Row was regenerated as a continuous in-between loop: play it as
+        # authored — sequential, at its natural cadence, no synthetic motion
+        # (the drawn animation carries it; place() still plants the feet).
+        n = SRC_POSES[row]
+        track = [(i // smooth_hold) % n for i in range(n_frames)]
+        return [place(cell(row, track[i])) for i in range(n_frames)]
+    # Every other played state gets the calm treatment: smoothest pose order
+    # and long holds. Its poses are never in-betweens, so frequent snaps
     # read as glitching in any state; energy comes from transforms instead.
     order = similarity_cycle([cell(row, p) for p in range(SRC_POSES[row])])
     hold, rem = divmod(n_frames, len(order))
@@ -150,17 +157,22 @@ def build_calm_row(cell, row, n_frames=48):
 def build(src_dir, dst_dir):
     src, dst = Path(src_dir), Path(dst_dir)
     cell = load_cells(src / "spritesheet.webp")
+    smooth_path = src / "smooth-rows.json"
+    smooth = {}
+    if smooth_path.exists():
+        smooth = {k: v for k, v in json.loads(smooth_path.read_text()).items()
+                  if not k.startswith("_")}
 
     rows = {}  # orca row index -> list of frames
-    rows[0] = build_calm_row(cell, "idle")
+    rows[0] = build_calm_row(cell, "idle", smooth_hold=smooth.get("idle"))
     rows[1] = [place(cell("rr", c)) for c in range(8)]
     rows[2] = [place(cell("rl", c)) for c in range(8)]
     rows[3] = [place(cell("wave", c)) for c in [0, 1, 2, 3, 3, 2, 1, 0]]
     rows[4] = [place(cell("jump", 2))]          # frozen drag pose
     rows[5] = [place(cell("failed", c)) for c in range(8)]
-    rows[6] = build_calm_row(cell, "wait")
-    rows[7] = build_calm_row(cell, "work")
-    rows[8] = build_calm_row(cell, "review")
+    rows[6] = build_calm_row(cell, "wait", smooth_hold=smooth.get("wait"))
+    rows[7] = build_calm_row(cell, "work", smooth_hold=smooth.get("work"))
+    rows[8] = build_calm_row(cell, "review", smooth_hold=smooth.get("review"))
 
     names = {0: "idle", 1: "running-right", 2: "running-left", 3: "waving",
              4: "jumping", 5: "failed", 6: "waiting", 7: "running", 8: "review"}

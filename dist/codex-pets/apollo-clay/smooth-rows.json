@@ -1,0 +1,6 @@
+{
+  "_comment": "Rows regenerated as continuous in-between loops (runs/clay-smooth). Value = frames to hold each pose in the 48-frame Orca loop; these rows play sequentially with no synthetic transforms beyond baseline anchoring.",
+  "idle": 8,
+  "wait": 8,
+  "work": 2
+}
