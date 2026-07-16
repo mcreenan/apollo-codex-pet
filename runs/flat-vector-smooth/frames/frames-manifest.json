@@ -1,0 +1,38 @@
+{
+  "ok": true,
+  "chroma_key": {
+    "hex": "#00B140",
+    "rgb": [
+      0,
+      177,
+      64
+    ],
+    "threshold": 96.0
+  },
+  "rows": [
+    {
+      "state": "idle",
+      "frames": [
+        "/Users/mcreenan/p/apollo-codex-pet/runs/flat-vector-smooth/frames/idle/00.png",
+        "/Users/mcreenan/p/apollo-codex-pet/runs/flat-vector-smooth/frames/idle/01.png",
+        "/Users/mcreenan/p/apollo-codex-pet/runs/flat-vector-smooth/frames/idle/02.png",
+        "/Users/mcreenan/p/apollo-codex-pet/runs/flat-vector-smooth/frames/idle/03.png",
+        "/Users/mcreenan/p/apollo-codex-pet/runs/flat-vector-smooth/frames/idle/04.png",
+        "/Users/mcreenan/p/apollo-codex-pet/runs/flat-vector-smooth/frames/idle/05.png"
+      ],
+      "method": "stable-slots"
+    },
+    {
+      "state": "review",
+      "frames": [
+        "/Users/mcreenan/p/apollo-codex-pet/runs/flat-vector-smooth/frames/review/00.png",
+        "/Users/mcreenan/p/apollo-codex-pet/runs/flat-vector-smooth/frames/review/01.png",
+        "/Users/mcreenan/p/apollo-codex-pet/runs/flat-vector-smooth/frames/review/02.png",
+        "/Users/mcreenan/p/apollo-codex-pet/runs/flat-vector-smooth/frames/review/03.png",
+        "/Users/mcreenan/p/apollo-codex-pet/runs/flat-vector-smooth/frames/review/04.png",
+        "/Users/mcreenan/p/apollo-codex-pet/runs/flat-vector-smooth/frames/review/05.png"
+      ],
+      "method": "stable-slots"
+    }
+  ]
+}
