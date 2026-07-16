@@ -67,12 +67,6 @@ def place(cell, dx=0.0, dy=0.0, rot=0.0, sx=1.0, sy=1.0):
     return frame
 
 
-def pose_track(n_poses, hold=4, cycles=2, order=None):
-    """Designed pose loop, each pose held `hold` frames, repeated `cycles`x."""
-    order = order if order is not None else range(n_poses)
-    return [p for _ in range(cycles) for p in order for _ in range(hold)]
-
-
 def similarity_cycle(cells, k_min=4):
     """Cyclic pose order minimizing the WORST visual snap between neighbors.
 
@@ -118,13 +112,12 @@ def build_calm_row(cell, row, n_frames=48):
     Rotations pivot about the feet, which doubles how far the head travels
     vs a center pivot — amplitudes stay small so sway reads as breathing,
     not a metronome. Calm states hold poses 8 frames to cut pose-snap rate."""
-    n_poses = SRC_POSES[row]
-    if row in ("idle", "wait"):  # calm states: fewer snaps, smoothest order
-        order = similarity_cycle([cell(row, p) for p in range(n_poses)])
-        hold, rem = divmod(n_frames, len(order))
-        track = [p for i, p in enumerate(order) for _ in range(hold + (i < rem))]
-    else:  # work is a gait, review is energetic: keep the authored order
-        track = pose_track(n_poses, hold=4, cycles=2)
+    # Every played state gets the calm treatment: smoothest pose order and
+    # long holds. Generated poses are never in-betweens, so frequent snaps
+    # read as glitching in any state; energy comes from transforms instead.
+    order = similarity_cycle([cell(row, p) for p in range(SRC_POSES[row])])
+    hold, rem = divmod(n_frames, len(order))
+    track = [p for i, p in enumerate(order) for _ in range(hold + (i < rem))]
     frames = []
     for i in range(n_frames):
         t = i / n_frames
@@ -141,7 +134,7 @@ def build_calm_row(cell, row, n_frames=48):
             rot = 1.2 * math.sin(4 * math.pi * t)                        # expectant tilt
             sy = 1.0 - 0.015 * (0.5 - 0.5 * math.cos(8 * math.pi * t))
         elif row == "review":
-            rot = 2.5 * math.sin(8 * math.pi * t)                        # happy wag
+            rot = 1.2 * math.sin(8 * math.pi * t)                        # happy wag
             for start in (8, 32):                                        # two mini-hops
                 if start <= i < start + 6:
                     ht = (i - start) / 5
