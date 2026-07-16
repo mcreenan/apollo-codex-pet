@@ -21,7 +21,7 @@ Everything was generated from three photos via the
 | `refs/` | Same photos converted/resized to ≤1536px PNG for `$imagegen` |
 | `variants/` | User-approved base look per style (full body on chroma green) |
 | `dist/codex-pets/` | Native Codex CLI pets: `pet.json` + 8×9 spritesheet |
-| `dist/codex-pet-bundles/` | Orca-importable `.codex-pet` bundles |
+| `dist/codex-pet-bundles/` | Orca-importable `.codex-pet` bundles, generated from `dist/codex-pets/` |
 | `prompts/` | The codex exec prompts that drove generation (reproducibility) |
 | `scripts/` | Post-processing generators (see below) |
 
@@ -47,6 +47,12 @@ gliding on every frame, and every frame anchored by its content bounding box
 to a common foot baseline so the pet stays planted. All frames are
 synthesized from the 57 real poses — no regeneration. Built by
 `scripts/orca-bundle.py`.
+
+The two `dist/` dirs are one artifact per host, not duplicates: the native
+Codex CLI pets in `dist/codex-pets/` are also the only final-form home of
+the 57 raw poses, making them the source the bundle script reads. Bundles
+are regenerable from them in seconds; the reverse is not true, so
+`dist/codex-pets/` is the dir to protect.
 
 Orca manifest limits (from its import validator): ≤512 frames per animation
 (and ≤ sheet columns), fps ≤ 60, frame ≤ 1024px per side, sheet ≤ 64MB,
