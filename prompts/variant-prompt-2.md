@@ -8,9 +8,9 @@ A medium-sized mutt. Mostly white/creme fur. Brown saddle patches on his back an
 
 ## Reference photos (attach ALL THREE to every generation as identity grounding)
 
-- /Users/mcreenan/dog-pet-photos/refs/IMG_4195.png — full body, sitting, facing camera; shows markings layout
-- /Users/mcreenan/dog-pet-photos/refs/IMG_0887.png — face close-up; shows mask and blaze detail
-- /Users/mcreenan/dog-pet-photos/refs/IMG_9501.png — full body side profile; shows saddle patch pattern
+- refs/IMG_4195.png — full body, sitting, facing camera; shows markings layout
+- refs/IMG_0887.png — face close-up; shows mask and blaze detail
+- refs/IMG_9501.png — full body side profile; shows saddle patch pattern
 
 ## Generate exactly 4 images, one per style
 
@@ -33,9 +33,9 @@ For each style below, generate ONE image of Apollo as a Codex pet base:
 
 Copy each selected final image to:
 
-- /Users/mcreenan/dog-pet-photos/variants/apollo-clay.png
-- /Users/mcreenan/dog-pet-photos/variants/apollo-flat-vector.png
-- /Users/mcreenan/dog-pet-photos/variants/apollo-3d-toy.png
+- variants/apollo-clay.png
+- variants/apollo-flat-vector.png
+- variants/apollo-3d-toy.png
 
 After copying, delete the originals from ~/.codex/generated_images if they live there.
 
@@ -45,6 +45,6 @@ Final response: return exactly the three output file paths, one per line, plus a
 
 4. **painterly** — warm storybook painterly mascot, soft brushwork, gentle gouache feel
 
-Also copy its selected image to: /Users/mcreenan/dog-pet-photos/variants/apollo-painterly.png
+Also copy its selected image to: variants/apollo-painterly.png
 
 (So the full output set is: apollo-clay.png, apollo-flat-vector.png, apollo-3d-toy.png, apollo-painterly.png)

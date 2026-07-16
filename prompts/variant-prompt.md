@@ -8,9 +8,9 @@ A medium-sized mutt. Mostly white/creme fur. Brown saddle patches on his back an
 
 ## Reference photos (attach ALL THREE to every generation as identity grounding)
 
-- /Users/mcreenan/dog-pet-photos/refs/IMG_4195.png — full body, sitting, facing camera; shows markings layout
-- /Users/mcreenan/dog-pet-photos/refs/IMG_0887.png — face close-up; shows mask and blaze detail
-- /Users/mcreenan/dog-pet-photos/refs/IMG_9501.png — full body side profile; shows saddle patch pattern
+- refs/IMG_4195.png — full body, sitting, facing camera; shows markings layout
+- refs/IMG_0887.png — face close-up; shows mask and blaze detail
+- refs/IMG_9501.png — full body side profile; shows saddle patch pattern
 
 ## Generate exactly 3 images, one per style
 
@@ -33,9 +33,9 @@ For each style below, generate ONE image of Apollo as a Codex pet base:
 
 Copy each selected final image to:
 
-- /Users/mcreenan/dog-pet-photos/variants/apollo-pixel.png
-- /Users/mcreenan/dog-pet-photos/variants/apollo-plush.png
-- /Users/mcreenan/dog-pet-photos/variants/apollo-sticker.png
+- variants/apollo-pixel.png
+- variants/apollo-plush.png
+- variants/apollo-sticker.png
 
 After copying, delete the originals from ~/.codex/generated_images if they live there.
 

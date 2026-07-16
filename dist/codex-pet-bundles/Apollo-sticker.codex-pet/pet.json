@@ -7,12 +7,12 @@
     "width": 192,
     "height": 208
   },
-  "fps": 6,
+  "fps": 12,
   "defaultAnimation": "idle",
   "animations": {
     "idle": {
       "row": 0,
-      "frames": 8
+      "frames": 48
     },
     "running-right": {
       "row": 1,
@@ -36,15 +36,15 @@
     },
     "waiting": {
       "row": 6,
-      "frames": 8
+      "frames": 48
     },
     "running": {
       "row": 7,
-      "frames": 8
+      "frames": 48
     },
     "review": {
       "row": 8,
-      "frames": 8
+      "frames": 48
     }
   }
 }

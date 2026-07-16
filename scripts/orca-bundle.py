@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Build v3 Orca .codex-pet bundles: wide 48-column sheets at 12fps.
+"""Build Orca .codex-pet bundles: wide 48-column sheets at 12fps.
 
 Orca plays one flat fps over each animation row (steps(), no per-frame
 timing) and only ever shows idle / running(work) / waiting / review, plus a
-frozen `jumping` frame while dragging. v3 uses the schema headroom
+frozen `jumping` frame while dragging. We use the schema headroom
 (frames <= columns, fps <= 60) to give each played state a 4-second
 choreographed loop: designed pose cycles held 4 frames each, with eased
 transforms (breathing squash, sway, bobs, hops) gliding on every frame.
@@ -12,7 +12,7 @@ All frames are synthesized from the 57 existing poses. A uniform 0.95
 content scale buys ~15px vertical headroom inside the 192x208 cell so
 transforms never clip (source sprites only have 5px top margin).
 
-Usage: orca-v3.py <src_pet_dir> <dst_bundle_dir>
+Usage: orca-bundle.py <src_pet_dir> <dst_bundle_dir>
 """
 import json
 import math
@@ -26,6 +26,7 @@ CELL_W, CELL_H = 192, 208
 COLS = 48
 FPS = 12
 BAKED_SCALE = 0.95
+BASELINE_Y = CELL_H - 6  # content bbox bottom sits here in every frame
 
 SRC_ROWS = {"idle": 0, "rr": 1, "rl": 2, "wave": 3, "jump": 4,
             "failed": 5, "wait": 6, "work": 7, "review": 8}
@@ -41,14 +42,25 @@ def load_cells(sheet_path):
 
 
 def place(cell, dx=0.0, dy=0.0, rot=0.0, sx=1.0, sy=1.0):
-    """Transform a full source cell, anchored bottom-center (feet planted)."""
+    """Transform a full source cell, feet planted on a common baseline.
+
+    Anchors the content alpha-bbox (not the cell edge, whose padding varies
+    per pose): bbox bottom on BASELINE_Y, bbox center-x on the cell midline.
+    Rotation pivots about that foot anchor so sway/wag never lifts the feet.
+    """
     w = max(1, round(CELL_W * sx * BAKED_SCALE))
     h = max(1, round(CELL_H * sy * BAKED_SCALE))
     img = cell.resize((w, h), Image.LANCZOS)
-    if rot:
-        img = img.rotate(rot, resample=Image.BICUBIC, expand=False)
+    # bbox from alpha only: sources keep RGB junk under transparent pixels
+    left, top, right, bottom = img.getchannel("A").getbbox() or (0, 0, w, h)
+    anchor_x = CELL_W / 2 + dx
+    anchor_y = BASELINE_Y + dy
     frame = Image.new("RGBA", (CELL_W, CELL_H), (0, 0, 0, 0))
-    frame.paste(img, ((CELL_W - w) // 2 + round(dx), CELL_H - h + round(dy)), img)
+    frame.paste(img, (round(anchor_x - (left + right) / 2),
+                      round(anchor_y - bottom)), img)
+    if rot:
+        frame = frame.rotate(rot, resample=Image.BICUBIC,
+                             center=(anchor_x, anchor_y))
     return frame
 
 
@@ -81,8 +93,11 @@ def build_calm_row(cell, row, n_frames=48):
             for start in (8, 32):                                        # two mini-hops
                 if start <= i < start + 6:
                     ht = (i - start) / 5
-                    dy = -10.0 * math.sin(math.pi * ht)
-                    sy = 1.0 + 0.03 * math.sin(math.pi * ht)
+                    # hop + stretch + wag must fit the 10px top headroom of
+                    # the tightest styles; wag eases out so the leap is upright
+                    dy = -6.0 * math.sin(math.pi * ht)
+                    sy = 1.0 + 0.015 * math.sin(math.pi * ht)
+                    rot *= 1.0 - math.sin(math.pi * ht)
         frames.append(place(cell(row, track[i]), dx=dx, dy=dy, rot=rot, sx=sx, sy=sy))
     return frames
 
@@ -114,8 +129,8 @@ def build(src_dir, dst_dir):
 
     src_manifest = json.loads((src / "pet.json").read_text())
     manifest = {
-        "id": f"{src_manifest['id']}-v3",
-        "displayName": f"{src_manifest.get('displayName', src_manifest['id'])} v3",
+        "id": src_manifest["id"],
+        "displayName": src_manifest.get("displayName", src_manifest["id"]),
         "description": src_manifest.get("description", ""),
         "spritesheetPath": "spritesheet.webp",
         "frame": {"width": CELL_W, "height": CELL_H},

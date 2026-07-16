@@ -11,18 +11,18 @@ Read and follow the hatch-pet skill at `~/.codex/skills/hatch-pet/SKILL.md`, com
 
 ## Canonical base — ALREADY GENERATED AND USER-APPROVED
 
-`/Users/mcreenan/dog-pet-photos/variants/apollo-plush.png` was generated earlier with $imagegen from Apollo's photos and the user approved it as the canonical look. Do NOT regenerate the base from scratch: copy this image in as the base job's selected output (it satisfies the base contract: single centered full-body pet on flat #00B140 chroma green, no text/shadows/effects), create `references/canonical-base.png` from it, and mark the base job complete. Then generate all 9 animation rows grounded on it per the skill.
+`variants/apollo-plush.png` was generated earlier with $imagegen from Apollo's photos and the user approved it as the canonical look. Do NOT regenerate the base from scratch: copy this image in as the base job's selected output (it satisfies the base contract: single centered full-body pet on flat #00B140 chroma green, no text/shadows/effects), create `references/canonical-base.png` from it, and mark the base job complete. Then generate all 9 animation rows grounded on it per the skill.
 
 ## Reference photos (identity grounding, pass via --reference)
 
-- /Users/mcreenan/dog-pet-photos/refs/IMG_4195.png — full body, sitting, facing camera
-- /Users/mcreenan/dog-pet-photos/refs/IMG_0887.png — face close-up (mask + blaze detail)
-- /Users/mcreenan/dog-pet-photos/refs/IMG_9501.png — full body side profile (saddle patches)
-- /Users/mcreenan/dog-pet-photos/variants/apollo-plush.png — canonical approved base look
+- refs/IMG_4195.png — full body, sitting, facing camera
+- refs/IMG_0887.png — face close-up (mask + blaze detail)
+- refs/IMG_9501.png — full body side profile (saddle patches)
+- variants/apollo-plush.png — canonical approved base look
 
 ## Run parameters
 
-- Run directory: /Users/mcreenan/dog-pet-photos/runs/plush
+- Run directory: runs/plush
 - Pet notes for prompts: "White/creme coat, brown saddle patches on back and sides, brown face mask with clean white central blaze from muzzle to forehead, brown ears, white chest/legs/belly, dark nose, warm brown eyes, friendly slightly goofy expression."
 - Style notes: keep the exact style, palette, proportions, and markings of the canonical base image across every row.
 
