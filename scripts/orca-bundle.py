@@ -14,6 +14,7 @@ transforms never clip (source sprites only have 5px top margin).
 
 Usage: orca-bundle.py <src_pet_dir> <dst_bundle_dir>
 """
+import itertools
 import json
 import math
 import shutil
@@ -66,9 +67,48 @@ def place(cell, dx=0.0, dy=0.0, rot=0.0, sx=1.0, sy=1.0):
     return frame
 
 
-def pose_track(n_poses, hold=4, cycles=2):
+def pose_track(n_poses, hold=4, cycles=2, order=None):
     """Designed pose loop, each pose held `hold` frames, repeated `cycles`x."""
-    return [p for _ in range(cycles) for p in range(n_poses) for _ in range(hold)]
+    order = order if order is not None else range(n_poses)
+    return [p for _ in range(cycles) for p in order for _ in range(hold)]
+
+
+def similarity_cycle(cells, k_min=4):
+    """Cyclic pose order minimizing the WORST visual snap between neighbors.
+
+    Source pose rows are distinct drawings, not in-betweens, so playing them
+    in sheet order can jump between very different poses. Brute-forces cycles
+    on downscaled thumbnails (n is small), and may drop outlier poses — a
+    pose that transitions smoothly to nothing doesn't belong in a calm loop
+    (kept only if dropping it doesn't clearly help)."""
+    thumbs = []
+    for c in cells:
+        t = c.resize((48, 52), Image.BILINEAR)
+        thumbs.append(list(t.convert("RGBA").tobytes()))
+    n = len(cells)
+    d = {}
+    for a in range(n):
+        for b in range(a + 1, n):
+            d[a, b] = sum(abs(x - y) for x, y in zip(thumbs[a], thumbs[b]))
+    def edge(a, b):
+        return d[min(a, b), max(a, b)]
+    def best_cycle(subset):
+        first, rest = subset[0], subset[1:]
+        best = None
+        for p in itertools.permutations(rest):
+            cyc = (first,) + p
+            edges = [edge(cyc[i], cyc[(i + 1) % len(cyc)]) for i in range(len(cyc))]
+            key = (max(edges), sum(edges))
+            if best is None or key < best[0]:
+                best = (key, list(cyc))
+        return best
+    (worst, _), order = best_cycle(tuple(range(n)))
+    for k in range(n - 1, k_min - 1, -1):
+        cand = min((best_cycle(s) for s in itertools.combinations(range(n), k)),
+                   key=lambda c: c[0])
+        if cand[0][0] < 0.8 * worst:  # drop poses only for a clear win
+            (worst, _), order = cand
+    return order
 
 
 def build_calm_row(cell, row, n_frames=48):
@@ -78,8 +118,13 @@ def build_calm_row(cell, row, n_frames=48):
     Rotations pivot about the feet, which doubles how far the head travels
     vs a center pivot — amplitudes stay small so sway reads as breathing,
     not a metronome. Calm states hold poses 8 frames to cut pose-snap rate."""
-    hold, cycles = (8, 1) if row in ("idle", "wait") else (4, 2)
-    track = pose_track(SRC_POSES[row], hold=hold, cycles=cycles)
+    n_poses = SRC_POSES[row]
+    if row in ("idle", "wait"):  # calm states: fewer snaps, smoothest order
+        order = similarity_cycle([cell(row, p) for p in range(n_poses)])
+        hold, rem = divmod(n_frames, len(order))
+        track = [p for i, p in enumerate(order) for _ in range(hold + (i < rem))]
+    else:  # work is a gait, review is energetic: keep the authored order
+        track = pose_track(n_poses, hold=4, cycles=2)
     frames = []
     for i in range(n_frames):
         t = i / n_frames
