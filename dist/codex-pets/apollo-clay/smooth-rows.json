@@ -1,6 +1,7 @@
 {
-  "_comment": "Rows regenerated as continuous in-between loops (runs/clay-smooth). Value = frames to hold each pose in the 48-frame Orca loop; these rows play sequentially with no synthetic transforms beyond baseline anchoring.",
-  "idle": 8,
-  "wait": 8,
-  "work": 2
+  "_comment": "Rows regenerated as continuous in-between loops (runs/clay-smooth, re-keyed by scripts/extract_rows.py). track = pose indices for the 48-frame Orca loop, each held `hold` frames (len(track)*hold == 48). Ping-pong tracks avoid wrap snaps; idle drops frame 5 (tail flip). These rows play as authored with no synthetic transforms.",
+  "idle":   {"track": [0, 1, 2, 3, 4, 3, 2, 1], "hold": 6},
+  "wait":   {"track": [0, 1, 2, 3, 4, 5, 5, 4, 3, 2, 1, 0], "hold": 4},
+  "work":   {"track": [0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5, 0, 1, 2, 3, 4, 5], "hold": 2},
+  "review": {"track": [0, 1, 2, 3, 4, 5, 5, 4, 3, 2, 1, 0], "hold": 4}
 }

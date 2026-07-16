@@ -105,20 +105,33 @@ def similarity_cycle(cells, k_min=4):
     return order
 
 
-def build_calm_row(cell, row, n_frames=48, smooth_hold=None):
+def build_calm_row(cell, row, n_frames=48, smooth=None):
     """Choreographed loop for one played state. All sine terms complete
     integer cycles over n_frames so frame N-1 flows back into frame 0.
 
     Rotations pivot about the feet, which doubles how far the head travels
     vs a center pivot — amplitudes stay small so sway reads as breathing,
     not a metronome. Calm states hold poses 8 frames to cut pose-snap rate."""
-    if smooth_hold:
-        # Row was regenerated as a continuous in-between loop: play it as
-        # authored — sequential, at its natural cadence, no synthetic motion
-        # (the drawn animation carries it; place() still plants the feet).
-        n = SRC_POSES[row]
-        track = [(i // smooth_hold) % n for i in range(n_frames)]
-        return [place(cell(row, track[i])) for i in range(n_frames)]
+    if smooth:
+        # Row was regenerated as a continuous in-between loop with frames
+        # already feet-registered to each other: play the authored track at
+        # its natural cadence with ONE shared anchor for the whole row.
+        # Per-frame bbox anchoring would re-shift frames whenever the lowest
+        # pixel moves (a wagging tail) and undo the registration.
+        track = [p for p in smooth["track"] for _ in range(smooth["hold"])]
+        assert len(track) == n_frames, (row, len(track))
+        w = round(CELL_W * BAKED_SCALE)
+        h = round(CELL_H * BAKED_SCALE)
+        imgs = {p: cell(row, p).resize((w, h), Image.LANCZOS)
+                for p in set(track)}
+        row_bottom = max(i.getchannel("A").getbbox()[3] for i in imgs.values())
+        dy = BASELINE_Y - row_bottom
+        frames = []
+        for p in track:
+            frame = Image.new("RGBA", (CELL_W, CELL_H), (0, 0, 0, 0))
+            frame.paste(imgs[p], ((CELL_W - w) // 2, dy), imgs[p])
+            frames.append(frame)
+        return frames
     # Every other played state gets the calm treatment: smoothest pose order
     # and long holds. Its poses are never in-betweens, so frequent snaps
     # read as glitching in any state; energy comes from transforms instead.
@@ -164,15 +177,15 @@ def build(src_dir, dst_dir):
                   if not k.startswith("_")}
 
     rows = {}  # orca row index -> list of frames
-    rows[0] = build_calm_row(cell, "idle", smooth_hold=smooth.get("idle"))
+    rows[0] = build_calm_row(cell, "idle", smooth=smooth.get("idle"))
     rows[1] = [place(cell("rr", c)) for c in range(8)]
     rows[2] = [place(cell("rl", c)) for c in range(8)]
     rows[3] = [place(cell("wave", c)) for c in [0, 1, 2, 3, 3, 2, 1, 0]]
     rows[4] = [place(cell("jump", 2))]          # frozen drag pose
     rows[5] = [place(cell("failed", c)) for c in range(8)]
-    rows[6] = build_calm_row(cell, "wait", smooth_hold=smooth.get("wait"))
-    rows[7] = build_calm_row(cell, "work", smooth_hold=smooth.get("work"))
-    rows[8] = build_calm_row(cell, "review", smooth_hold=smooth.get("review"))
+    rows[6] = build_calm_row(cell, "wait", smooth=smooth.get("wait"))
+    rows[7] = build_calm_row(cell, "work", smooth=smooth.get("work"))
+    rows[8] = build_calm_row(cell, "review", smooth=smooth.get("review"))
 
     names = {0: "idle", 1: "running-right", 2: "running-left", 3: "waving",
              4: "jumping", 5: "failed", 6: "waiting", 7: "running", 8: "review"}
